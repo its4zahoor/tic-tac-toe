@@ -10,8 +10,8 @@ const winPositions = [
 ];
 
 const MARK = {
-  0: "circle",
-  1: "cross",
+  0: "cross",
+  1: "circle",
 };
 
 let turn = 0;
@@ -24,7 +24,7 @@ restartEl.addEventListener("click", clearBoard);
 const allBoxes = document.querySelectorAll(".box");
 
 function handleClick(box, index) {
-  if (state[index] && !isActive) return;
+  if (state[index] || !isActive || box.innerHTML) return;
   const player = turn % 2;
   const mark = document.createElement("div");
   mark.className = `${MARK[player]}-mark`;
@@ -60,6 +60,7 @@ function clearBoard() {
   });
   resultEl.innerHTML = null;
   restartEl.className = "d-none";
+  isActive = true;
   turn = 0;
 }
 
