@@ -107,3 +107,14 @@ input[type="radio"] {
 label {
   margin-right: 2rem;
 }
+
+footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  width: 100%;
+  padding: 1rem;
+}
