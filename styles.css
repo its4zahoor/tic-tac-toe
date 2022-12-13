@@ -92,3 +92,7 @@ body {
   height: 2rem;
   color: rgb(24, 85, 24);
 }
+
+form {
+  margin: 5rem;
+}

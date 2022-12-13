@@ -18,11 +18,25 @@ let turn = 0;
 let isActive = true;
 const state = [];
 let timeout = null;
+let difficulty = null;
 
 const resultEl = document.querySelector("#result");
+const allBoxes = document.querySelectorAll(".box");
+
 const restartEl = document.querySelector("#restart");
 restartEl.addEventListener("click", clearBoard);
-const allBoxes = document.querySelectorAll(".box");
+
+const radios = document.querySelectorAll('input[name="difficulty"]');
+radios.forEach((radio) => {
+  radio.addEventListener("click", function () {
+    difficulty = radio.value;
+  });
+});
+
+const checkbox = document.querySelector("#computer");
+checkbox.addEventListener("click", function (e) {
+  difficulty = e.target.checked ? "easy" : null;
+});
 
 function handleClick(box, index) {
   if (state[index] || !isActive || box.innerHTML) return;
@@ -33,7 +47,8 @@ function handleClick(box, index) {
   state[index] = MARK[player];
   checkWinner(player, state);
   turn++;
-  playerTwoMove();
+  if (difficulty) playerTwoMove();
+  disableControls();
 }
 
 function checkWinner(player, state) {
@@ -67,6 +82,11 @@ function playerTwoMove() {
   const index = Math.floor(randomFloat);
   const nextBox = emptyBoxes[index];
   timeout = setTimeout(() => handleClick(allBoxes[nextBox], nextBox), 500);
+}
+
+function disableControls() {
+  radios.forEach((radio) => (radio.disabled = turn > 0 && isActive));
+  checkbox.disabled = turn > 0 && isActive;
 }
 
 function clearBoard() {

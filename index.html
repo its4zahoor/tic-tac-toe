@@ -23,5 +23,32 @@
       <div class="box border-right"></div>
       <div class="box"></div>
     </div>
+    <form>
+      <fieldset>
+        <legend>Difficulty Level:</legend>
+        <div>
+          <input type="checkbox" id="computer" name="computer" />
+          <label for="computer">Play with computer</label>
+        </div>
+        <div>
+          <input
+            type="radio"
+            id="easy"
+            name="difficulty"
+            value="easy"
+            checked
+          />
+          <label for="easy">Easy</label>
+          <input
+            type="radio"
+            id="hard"
+            name="difficulty"
+            value="hard"
+            disabled
+          />
+          <label for="hard">Hard</label>
+        </div>
+      </fieldset>
+    </form>
   </body>
 </html>
