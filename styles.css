@@ -99,3 +99,11 @@ fieldset {
   padding: 1rem;
   box-sizing: border-box;
 }
+
+input[type="radio"] {
+  margin-top: 1rem;
+}
+
+label {
+  margin-right: 2rem;
+}
