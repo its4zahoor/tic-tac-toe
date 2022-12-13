@@ -93,6 +93,9 @@ body {
   color: rgb(24, 85, 24);
 }
 
-form {
+fieldset {
   margin: 5rem;
+  width: 300px;
+  padding: 1rem;
+  box-sizing: border-box;
 }

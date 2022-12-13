@@ -26,14 +26,14 @@ const allBoxes = document.querySelectorAll(".box");
 const restartEl = document.querySelector("#restart");
 restartEl.addEventListener("click", clearBoard);
 
-const radios = document.querySelectorAll('input[name="difficulty"]');
+const radios = document.querySelectorAll('input[type="radio"]');
 radios.forEach((radio) => {
   radio.addEventListener("click", function () {
     difficulty = radio.value;
   });
 });
 
-const checkbox = document.querySelector("#computer");
+const checkbox = document.querySelector("#checkbox");
 checkbox.addEventListener("click", function (e) {
   difficulty = e.target.checked ? "easy" : null;
   clearBoard();
@@ -86,8 +86,11 @@ function playerTwoMove() {
 }
 
 function disableControls() {
-  radios.forEach((radio) => (radio.disabled = turn > 0 && isActive));
-  checkbox.disabled = turn > 0 && isActive;
+  radios.forEach((radio) => {
+    if (radio.value === "hard") return;
+    radio.disabled = isActive;
+  });
+  checkbox.disabled = isActive;
 }
 
 function clearBoard() {
