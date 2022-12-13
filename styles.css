@@ -33,25 +33,25 @@ body {
   border-bottom: 5px solid black;
 }
 
-.circle-mark {
+.O {
   border: 5px solid black;
   border-radius: 50%;
   height: 50px;
   width: 50px;
 }
 
-.winner .circle-mark {
+.winner .O {
   border-color: white;
 }
 
-.cross-mark {
+.X {
   height: 50px;
   width: 50px;
   position: relative;
 }
 
-.cross-mark::after,
-.cross-mark::before {
+.X::after,
+.X::before {
   position: absolute;
   content: "";
   height: 60px;
@@ -61,17 +61,17 @@ body {
   top: -10%;
 }
 
-.winner .cross-mark::after,
-.winner .cross-mark::before {
+.winner .X::after,
+.winner .X::before {
   background-color: white;
 }
 
-.cross-mark::after {
+.X::after {
   transform: rotate(45deg);
   transform-origin: center;
 }
 
-.cross-mark::before {
+.X::before {
   transform-origin: center;
   transform: rotate(-45deg);
 }

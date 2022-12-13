@@ -10,13 +10,14 @@ const winningSlices = [
 ];
 
 const MARK = {
-  0: "cross",
-  1: "circle",
+  0: "X",
+  1: "O",
 };
 
 let turn = 0;
 let isActive = true;
 const state = [];
+let timeout = null;
 
 const resultEl = document.querySelector("#result");
 const restartEl = document.querySelector("#restart");
@@ -27,20 +28,21 @@ function handleClick(box, index) {
   if (state[index] || !isActive || box.innerHTML) return;
   const player = turn % 2;
   const mark = document.createElement("div");
-  mark.className = `${MARK[player]}-mark`;
+  mark.className = MARK[player];
   box.appendChild(mark);
-  state[index] = player;
+  state[index] = MARK[player];
   checkWinner(player, state);
   turn++;
+  playerTwoMove();
 }
 
 function checkWinner(player, state) {
   if (turn < 4) return;
-  const isSamePlayer = (x) => state[x] === player;
+  const isSamePlayer = (x) => state[x] === MARK[player];
   const testEverySlice = (slice) => slice.every(isSamePlayer);
   const winnerSlice = winningSlices.find(testEverySlice);
   if (winnerSlice) {
-    showResult(`Player ${player ? "O" : "X"} won`);
+    showResult(`Player ${MARK[player]} won`);
     changeSliceBG(winnerSlice);
   } else if (!winnerSlice && turn === 8) {
     showResult(`Ooops!!! It's a draw`);
@@ -57,6 +59,16 @@ function changeSliceBG(slice) {
   slice.forEach((index) => allBoxes[index].classList.add("winner"));
 }
 
+function playerTwoMove() {
+  clearTimeout(timeout);
+  if (turn % 2 === 0) return;
+  const emptyBoxes = state.flatMap((s, i) => (!s ? i : []));
+  const randomFloat = Math.random(emptyBoxes.length) * emptyBoxes.length;
+  const index = Math.floor(randomFloat);
+  const nextBox = emptyBoxes[index];
+  timeout = setTimeout(() => handleClick(allBoxes[nextBox], nextBox), 500);
+}
+
 function clearBoard() {
   allBoxes.forEach((box, index) => {
     state[index] = null;
@@ -70,6 +82,7 @@ function clearBoard() {
   restartEl.className = "d-none";
   isActive = true;
   turn = 0;
+  clearTimeout(timeout);
 }
 
 clearBoard();
