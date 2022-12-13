@@ -40,10 +40,10 @@ function checkWinner(player, state) {
   const testEverySlice = (slice) => slice.every(isSamePlayer);
   const winnerSlice = winningSlices.find(testEverySlice);
   if (winnerSlice) {
-    showResult(`Player ${player ? "O" : "X"} wins`);
+    showResult(`Player ${player ? "O" : "X"} won`);
     changeSliceBG(winnerSlice);
   } else if (!winnerSlice && turn === 8) {
-    showResult(`The game is Draw`);
+    showResult(`Ooops!!! It's a draw`);
   }
 }
 
