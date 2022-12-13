@@ -1,4 +1,4 @@
-const winPositions = [
+const winningSlices = [
   [0, 1, 2],
   [3, 4, 5],
   [6, 7, 8],
@@ -30,30 +30,38 @@ function handleClick(box, index) {
   mark.className = `${MARK[player]}-mark`;
   box.appendChild(mark);
   state[index] = player;
-  resultEl.innerHTML = checkWinner(player, state);
+  checkWinner(player, state);
   turn++;
 }
 
 function checkWinner(player, state) {
-  if (turn < 4) return null;
-  const isSamePlayer = (slice) => slice.every((x) => state[x] === player);
-  const isWinner = winPositions.some(isSamePlayer);
-  if (isWinner) {
-    restartEl.removeAttribute("class");
-    isActive = false;
-    return `Player ${player} wins. Restart the game?`;
-  } else if (!isWinner && turn === 8) {
-    restartEl.removeAttribute("class");
-    isActive = false;
-    return `The game is Draw. Restart the game`;
+  if (turn < 4) return;
+  const isSamePlayer = (x) => state[x] === player;
+  const testEverySlice = (slice) => slice.every(isSamePlayer);
+  const winnerSlice = winningSlices.find(testEverySlice);
+  if (winnerSlice) {
+    showResult(`Player ${player ? "O" : "X"} wins`);
+    changeSliceBG(winnerSlice);
+  } else if (!winnerSlice && turn === 8) {
+    showResult(`The game is Draw`);
   }
-  return null;
+}
+
+function showResult(message) {
+  restartEl.classList.remove("d-none");
+  isActive = false;
+  resultEl.innerHTML = message;
+}
+
+function changeSliceBG(slice) {
+  slice.forEach((index) => allBoxes[index].classList.add("winner"));
 }
 
 function clearBoard() {
   allBoxes.forEach((box, index) => {
     state[index] = null;
     box.innerHTML = null;
+    box.classList.remove("winner");
     box.addEventListener("click", () => handleClick(box, index), {
       once: true,
     });
