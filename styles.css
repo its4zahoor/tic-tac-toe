@@ -21,6 +21,10 @@ body {
   cursor: pointer;
 }
 
+.box.winner {
+  background-color: rgb(102, 146, 102);
+}
+
 .border-right {
   border-right: 5px solid black;
 }
@@ -36,6 +40,10 @@ body {
   width: 50px;
 }
 
+.winner .circle-mark {
+  border-color: white;
+}
+
 .cross-mark {
   height: 50px;
   width: 50px;
@@ -46,12 +54,16 @@ body {
 .cross-mark::before {
   position: absolute;
   content: "";
-  display: "block";
   height: 60px;
   width: 5px;
   background-color: black;
   left: 40%;
   top: -10%;
+}
+
+.winner .cross-mark::after,
+.winner .cross-mark::before {
+  background-color: white;
 }
 
 .cross-mark::after {
@@ -69,9 +81,8 @@ body {
 }
 
 #restart {
-  margin: 3rem;
+  margin: 2rem;
   height: 40px;
-  width: 80px;
   font-size: 1rem;
   border: 2px rgb(17, 51, 116) solid;
 }
