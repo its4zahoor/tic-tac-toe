@@ -36,6 +36,7 @@ radios.forEach((radio) => {
 const checkbox = document.querySelector("#computer");
 checkbox.addEventListener("click", function (e) {
   difficulty = e.target.checked ? "easy" : null;
+  clearBoard();
 });
 
 function handleClick(box, index) {
