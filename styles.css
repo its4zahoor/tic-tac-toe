@@ -100,8 +100,8 @@ fieldset {
   box-sizing: border-box;
 }
 
-input[type="radio"] {
-  margin-top: 1rem;
+input[type="checkbox"] {
+  margin-bottom: 1rem;
 }
 
 label {

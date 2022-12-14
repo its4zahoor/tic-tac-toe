@@ -19,6 +19,7 @@ let isActive = true;
 const state = [];
 let timeout = null;
 let difficulty = null;
+let movebyPC = 1;
 
 const resultEl = document.querySelector("#result");
 const allBoxes = document.querySelectorAll(".box");
@@ -36,10 +37,23 @@ radios.forEach((radio) => {
 const checkbox = document.querySelector("#checkbox");
 checkbox.addEventListener("click", function (e) {
   difficulty = e.target.checked ? "easy" : null;
+  if (!e.target.checked) {
+    moveCheckbox.checked = false;
+    disableControls(true);
+  }
+  if (e.target.checked) disableControls(false);
   clearBoard();
 });
 
+const moveCheckbox = document.querySelector("#move");
+moveCheckbox.addEventListener("click", function (e) {
+  movebyPC = e.target.checked ? 0 : 1;
+  clearBoard();
+  if (e.target.checked) computerMove();
+});
+
 function handleClick(box, index) {
+  if (turn === 0) disableControls();
   if (state[index] || !isActive || box.innerHTML) return;
   const player = turn % 2;
   const mark = document.createElement("div");
@@ -48,8 +62,7 @@ function handleClick(box, index) {
   state[index] = MARK[player];
   checkWinner(player, state);
   turn++;
-  if (difficulty) computerMove();
-  disableControls();
+  computerMove();
 }
 
 function checkWinner(player, state) {
@@ -69,6 +82,7 @@ function showResult(message) {
   restartEl.classList.remove("d-none");
   isActive = false;
   resultEl.innerHTML = message;
+  disableControls();
 }
 
 function changeSliceBG(slice) {
@@ -85,12 +99,13 @@ function computerMove() {
   timeout = setTimeout(() => handleClick(allBoxes[nextIdx], nextIdx), 500);
 }
 
-function disableControls() {
+function disableControls(isDisabled) {
+  if (isDisabled === undefined) checkbox.disabled = isActive;
   radios.forEach((radio) => {
     if (radio.value === "hard") return;
-    radio.disabled = isActive;
+    radio.disabled = isDisabled ?? isActive;
   });
-  checkbox.disabled = isActive;
+  moveCheckbox.disabled = isDisabled ?? isActive;
 }
 
 function clearBoard() {
@@ -107,6 +122,7 @@ function clearBoard() {
   isActive = true;
   turn = 0;
   clearTimeout(timeout);
+  computerMove();
 }
 
 clearBoard();
