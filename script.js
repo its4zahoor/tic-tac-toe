@@ -23,6 +23,7 @@ let movebyPC = 1;
 
 const resultEl = document.querySelector("#result");
 const allBoxes = document.querySelectorAll(".box");
+const root = document.querySelector(":root");
 
 const restartEl = document.querySelector("#restart");
 restartEl.addEventListener("click", clearBoard);
@@ -89,14 +90,22 @@ function changeSliceBG(slice) {
   slice.forEach((index) => allBoxes[index].classList.add("winner"));
 }
 
+function changeCursor(cursor) {
+  root.style.setProperty("--pointer", cursor);
+}
+
 function computerMove() {
+  if (!(difficulty && turn % 2 === movebyPC)) return;
+  changeCursor("wait");
   clearTimeout(timeout);
-  if (turn % 2 === 0) return;
   const emptyIdxs = state.flatMap((s, i) => (!s ? i : []));
   const randomFloat = Math.random(emptyIdxs.length) * emptyIdxs.length;
   const index = Math.floor(randomFloat);
   const nextIdx = emptyIdxs[index];
-  timeout = setTimeout(() => handleClick(allBoxes[nextIdx], nextIdx), 500);
+  timeout = setTimeout(() => {
+    handleClick(allBoxes[nextIdx], nextIdx);
+    changeCursor("pointer");
+  }, 200);
 }
 
 function disableControls(isDisabled) {

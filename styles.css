@@ -1,3 +1,7 @@
+:root {
+  --pointer: pointer;
+}
+
 body {
   color: black;
   display: flex;
@@ -18,7 +22,7 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  cursor: pointer;
+  cursor: var(--pointer);
 }
 
 .box.winner {
@@ -81,6 +85,7 @@ body {
 }
 
 #restart {
+  cursor: pointer;
   margin: 2rem;
   height: 40px;
   font-size: 1rem;
