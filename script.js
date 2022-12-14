@@ -48,7 +48,7 @@ function handleClick(box, index) {
   state[index] = MARK[player];
   checkWinner(player, state);
   turn++;
-  if (difficulty) playerTwoMove();
+  if (difficulty) computerMove();
   disableControls();
 }
 
@@ -75,14 +75,14 @@ function changeSliceBG(slice) {
   slice.forEach((index) => allBoxes[index].classList.add("winner"));
 }
 
-function playerTwoMove() {
+function computerMove() {
   clearTimeout(timeout);
   if (turn % 2 === 0) return;
-  const emptyBoxes = state.flatMap((s, i) => (!s ? i : []));
-  const randomFloat = Math.random(emptyBoxes.length) * emptyBoxes.length;
+  const emptyIdxs = state.flatMap((s, i) => (!s ? i : []));
+  const randomFloat = Math.random(emptyIdxs.length) * emptyIdxs.length;
   const index = Math.floor(randomFloat);
-  const nextBox = emptyBoxes[index];
-  timeout = setTimeout(() => handleClick(allBoxes[nextBox], nextBox), 500);
+  const nextIdx = emptyIdxs[index];
+  timeout = setTimeout(() => handleClick(allBoxes[nextIdx], nextIdx), 500);
 }
 
 function disableControls() {
