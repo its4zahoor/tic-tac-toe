@@ -94,14 +94,18 @@ function changeCursor(cursor) {
   root.style.setProperty("--pointer", cursor);
 }
 
+function getEmptyIndex() {
+  const emptyIdxs = state.flatMap((s, i) => (!s ? i : []));
+  const randomFloat = Math.random() * emptyIdxs.length;
+  const index = Math.floor(randomFloat);
+  return emptyIdxs[index];
+}
+
 function computerMove() {
   if (!(difficulty && turn % 2 === movebyPC)) return;
   changeCursor("wait");
   clearTimeout(timeout);
-  const emptyIdxs = state.flatMap((s, i) => (!s ? i : []));
-  const randomFloat = Math.random(emptyIdxs.length) * emptyIdxs.length;
-  const index = Math.floor(randomFloat);
-  const nextIdx = emptyIdxs[index];
+  const nextIdx = getEmptyIndex();
   timeout = setTimeout(() => {
     handleClick(allBoxes[nextIdx], nextIdx);
     changeCursor("pointer");
