@@ -112,7 +112,7 @@ function getIndexForPlayer(player) {
 }
 
 function getWinIndex() {
-  if (turn < 6 - movebyPC) return;
+  if (turn < 4 + movebyPC) return;
   const pcPlayer = MARK[movebyPC];
   return getIndexForPlayer(pcPlayer);
 }
@@ -142,10 +142,10 @@ function getEmptyIndex() {
 }
 
 function getNextIndex() {
-  let nextIndex = null;
+  let nextIndex;
   if (difficulty === "easy") nextIndex = getWinIndex();
-  if (!nextIndex) nextIndex = getDefendIndex();
-  if (!nextIndex) nextIndex = getBestMoveForPC();
+  if (isNaN(nextIndex)) nextIndex = getDefendIndex();
+  if (isNaN(nextIndex)) nextIndex = getBestMoveForPC();
   return nextIndex ?? getEmptyIndex();
 }
 
