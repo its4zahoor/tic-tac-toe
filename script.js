@@ -108,10 +108,9 @@ function hardModeIndex() {
 }
 
 function getEmptyIndex() {
+  const emptyIdxs = state.flatMap((s, i) => (!s ? i : []));
   const randomFloat = Math.random() * emptyIdxs.length;
   const index = Math.floor(randomFloat);
-  if (turn === 0) return index;
-  const emptyIdxs = state.flatMap((s, i) => (!s ? i : []));
   return emptyIdxs[index];
 }
 
