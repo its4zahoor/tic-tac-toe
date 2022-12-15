@@ -124,6 +124,7 @@ function getDefendIndex() {
 }
 
 function getBestMoveForPC() {
+  if (turn === movebyPC) return;
   const pcPlayer = MARK[movebyPC];
   const emptySlots = (slice) => slice.filter((x) => !state[x]);
   const hasPCMove = (slice) => slice.some((x) => state[x] === pcPlayer);
