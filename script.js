@@ -22,6 +22,7 @@ let movebyPC = null;
 let difficulty = null;
 
 const resultEl = document.querySelector("#result");
+const statsEl = document.querySelector("#stats");
 const allBoxes = document.querySelectorAll(".box");
 const root = document.querySelector(":root");
 
@@ -69,8 +70,9 @@ function handleClick(box, index) {
 
 function getWinMessage(player) {
   if (!difficulty) return `Player ${MARK[player]} won`;
-  if (player === movebyPC) return "Computer won";
-  return "You won";
+  const label = player === movebyPC ? "Computer" : "You";
+  saveHistory(label);
+  return `${label} won`;
 }
 
 function checkWinner(player, state) {
@@ -83,10 +85,19 @@ function checkWinner(player, state) {
     changeSliceBG(winnerSlice);
   } else if (!winnerSlice && turn === 8) {
     showResult(`Ooops!!! It's a draw`);
+    if (difficulty) saveHistory("Draw");
   }
 }
 
+function showStats() {
+  if (!difficulty) return;
+  const history = getHistory();
+  const statsArr = Object.keys(history).map((k) => `${k} ${history[k]}`);
+  statsEl.innerHTML = statsArr.join(" | ");
+}
+
 function showResult(message) {
+  showStats();
   restartEl.classList.remove("d-none");
   isActive = false;
   resultEl.innerHTML = message;
@@ -181,12 +192,24 @@ function clearBoard() {
   });
   state = Array(9).fill(null);
   resultEl.innerHTML = null;
+  statsEl.innerHTML = null;
   restartEl.className = "d-none";
   isActive = true;
   movebyPC ??= 1;
   turn = 0;
   clearTimeout(timeout);
   computerMove();
+}
+
+function saveHistory(player) {
+  let prev = getHistory();
+  if (!prev) prev = { Computer: 0, You: 0, Draw: 0 };
+  prev[player] += 1;
+  localStorage.setItem("__history__", JSON.stringify(prev));
+}
+
+function getHistory() {
+  return JSON.parse(localStorage.getItem("__history__"));
 }
 
 clearBoard();
