@@ -14,12 +14,12 @@ const MARK = {
   1: "O",
 };
 
-let turn = 0;
-let isActive = true;
-const state = [];
+let turn = null;
+let state = null;
 let timeout = null;
+let isActive = null;
+let movebyPC = null;
 let difficulty = null;
-let movebyPC = 1;
 
 const resultEl = document.querySelector("#result");
 const allBoxes = document.querySelectorAll(".box");
@@ -32,6 +32,7 @@ const radios = document.querySelectorAll('input[type="radio"]');
 radios.forEach((radio) => {
   radio.addEventListener("click", function () {
     difficulty = radio.value;
+    clearBoard();
   });
 });
 
@@ -94,18 +95,37 @@ function changeCursor(cursor) {
   root.style.setProperty("--pointer", cursor);
 }
 
+//  TODO: first check if win is possible
+function hardModeIndex() {
+  const oppPlayer = MARK[(turn + 1) % 2];
+  const oppMoves = (slice) => slice.filter((x) => state[x] === oppPlayer);
+  const hasEmptyIndex = (slice) => slice.some((e) => !state[e]);
+  const emptyIndexOpp = (slice) =>
+    oppMoves(slice).length === 2 && hasEmptyIndex(slice);
+  let slice = winningSlices.find(emptyIndexOpp);
+  let index = slice?.findIndex((e) => !state[e]);
+  return slice ? slice[index] : null;
+}
+
 function getEmptyIndex() {
-  const emptyIdxs = state.flatMap((s, i) => (!s ? i : []));
   const randomFloat = Math.random() * emptyIdxs.length;
   const index = Math.floor(randomFloat);
+  if (turn === 0) return index;
+  const emptyIdxs = state.flatMap((s, i) => (!s ? i : []));
   return emptyIdxs[index];
+}
+
+function getNextIndex() {
+  let hardIndex = null;
+  if (difficulty === "hard") hardIndex = hardModeIndex();
+  return hardIndex ?? getEmptyIndex();
 }
 
 function computerMove() {
   if (!(difficulty && turn % 2 === movebyPC)) return;
   changeCursor("wait");
   clearTimeout(timeout);
-  const nextIdx = getEmptyIndex();
+  const nextIdx = getNextIndex();
   timeout = setTimeout(() => {
     handleClick(allBoxes[nextIdx], nextIdx);
     changeCursor("pointer");
@@ -114,25 +134,24 @@ function computerMove() {
 
 function disableControls(isDisabled) {
   if (isDisabled === undefined) checkbox.disabled = isActive;
-  radios.forEach((radio) => {
-    if (radio.value === "hard") return;
-    radio.disabled = isDisabled ?? isActive;
-  });
+  radios.forEach((radio) => (radio.disabled = isDisabled ?? isActive));
   moveCheckbox.disabled = isDisabled ?? isActive;
 }
 
 function clearBoard() {
+  if (turn === 0) return;
   allBoxes.forEach((box, index) => {
-    state[index] = null;
     box.innerHTML = null;
     box.classList.remove("winner");
     box.addEventListener("click", () => handleClick(box, index), {
       once: true,
     });
   });
+  state = Array(9).fill(null);
   resultEl.innerHTML = null;
   restartEl.className = "d-none";
   isActive = true;
+  movebyPC ??= 1;
   turn = 0;
   clearTimeout(timeout);
   computerMove();
