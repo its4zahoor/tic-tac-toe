@@ -95,16 +95,37 @@ function changeCursor(cursor) {
   root.style.setProperty("--pointer", cursor);
 }
 
-//  TODO: first check if win is possible
-function hardModeIndex() {
-  const oppPlayer = MARK[(turn + 1) % 2];
-  const oppMoves = (slice) => slice.filter((x) => state[x] === oppPlayer);
+function getIndexForPlayer(player) {
+  const movesList = (slice) => slice.filter((x) => state[x] === player);
   const hasEmptyIndex = (slice) => slice.some((e) => !state[e]);
-  const emptyIndexOpp = (slice) =>
-    oppMoves(slice).length === 2 && hasEmptyIndex(slice);
-  let slice = winningSlices.find(emptyIndexOpp);
-  let index = slice?.findIndex((e) => !state[e]);
-  return slice ? slice[index] : null;
+  const getValidSlice = (slice) =>
+    movesList(slice).length === 2 && hasEmptyIndex(slice);
+  const slice = winningSlices.find(getValidSlice);
+  const index = slice?.findIndex((e) => !state[e]);
+  return slice?.[index];
+}
+
+function getWinIndex() {
+  if (turn < 6 - movebyPC) return;
+  const pcPlayer = MARK[movebyPC];
+  return getIndexForPlayer(pcPlayer);
+}
+
+function getDefendIndex() {
+  if (turn < 4 - movebyPC) return;
+  const oppPlayer = MARK[(turn + 1) % 2];
+  return getIndexForPlayer(oppPlayer);
+}
+
+function getBestMoveForPC() {
+  const pcPlayer = MARK[movebyPC];
+  const emptySlots = (slice) => slice.filter((x) => !state[x]);
+  const hasPCMove = (slice) => slice.some((x) => state[x] === pcPlayer);
+  const getSlice = (slice) =>
+    emptySlots(slice).length === 2 && hasPCMove(slice);
+  const slice = winningSlices.find(getSlice);
+  const index = slice?.findIndex((e) => !state[e]);
+  return slice?.[index];
 }
 
 function getEmptyIndex() {
@@ -115,9 +136,11 @@ function getEmptyIndex() {
 }
 
 function getNextIndex() {
-  let hardIndex = null;
-  if (difficulty === "hard") hardIndex = hardModeIndex();
-  return hardIndex ?? getEmptyIndex();
+  let nextIndex = null;
+  if (difficulty === "easy") nextIndex = getWinIndex();
+  if (!nextIndex) nextIndex = getDefendIndex();
+  if (!nextIndex) nextIndex = getBestMoveForPC();
+  return nextIndex ?? getEmptyIndex();
 }
 
 function computerMove() {
@@ -133,7 +156,10 @@ function computerMove() {
 
 function disableControls(isDisabled) {
   if (isDisabled === undefined) checkbox.disabled = isActive;
-  radios.forEach((radio) => (radio.disabled = isDisabled ?? isActive));
+  radios.forEach((radio) => {
+    if (radio.value === "hard") return;
+    radio.disabled = isDisabled ?? isActive;
+  });
   moveCheckbox.disabled = isDisabled ?? isActive;
 }
 
