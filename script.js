@@ -67,13 +67,19 @@ function handleClick(box, index) {
   computerMove();
 }
 
+function getWinMessage(player) {
+  if (!difficulty) return `Player ${MARK[player]} won`;
+  if (player === movebyPC) return "Computer won";
+  return "You won";
+}
+
 function checkWinner(player, state) {
   if (turn < 4) return;
   const isSamePlayer = (x) => state[x] === MARK[player];
   const testEverySlice = (slice) => slice.every(isSamePlayer);
   const winnerSlice = winningSlices.find(testEverySlice);
   if (winnerSlice) {
-    showResult(`Player ${MARK[player]} won`);
+    showResult(getWinMessage(player));
     changeSliceBG(winnerSlice);
   } else if (!winnerSlice && turn === 8) {
     showResult(`Ooops!!! It's a draw`);
