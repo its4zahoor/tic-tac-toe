@@ -9,6 +9,10 @@ const winningSlices = [
   [2, 5, 8],
 ];
 
+const CORNERS = [0, 2, 6, 8];
+const EDGES = [1, 3, 5, 7];
+const CENTER = 4;
+
 const MARK = {
   0: "X",
   1: "O",
@@ -84,8 +88,8 @@ function checkWinner(player, state) {
     showResult(getWinMessage(player));
     changeSliceBG(winnerSlice);
   } else if (!winnerSlice && turn === 8) {
-    showResult(`Ooops!!! It's a draw`);
     if (difficulty) saveHistory("Draw");
+    showResult(`Ooops!!! It's a draw`);
   }
 }
 
@@ -134,16 +138,35 @@ function getDefendIndex() {
   return getIndexForPlayer(oppPlayer);
 }
 
+function getCenterOrCornerIndex() {
+  return !state[CENTER]
+    ? CENTER
+    : CORNERS[Math.floor(Math.random() * CORNERS.length)];
+}
+
+function getCommonCornerIndex() {
+  const bottomRightEdges = EDGES.slice(2, 4);
+  const oppPlayer = MARK[(turn + 1) % 2];
+  const isBothEdgesFilled = bottomRightEdges.every(
+    (i) => state[i] === oppPlayer
+  );
+  return isBothEdgesFilled && !state[8] ? 8 : undefined;
+}
+
 function getBestMoveForPC() {
-  if (turn === movebyPC) return;
+  if (turn === movebyPC) {
+    return getCenterOrCornerIndex();
+  }
+  let commonIndex = getCommonCornerIndex();
+  if (!isNaN(commonIndex)) return commonIndex;
   const pcPlayer = MARK[movebyPC];
   const emptySlots = (slice) => slice.filter((x) => !state[x]);
   const hasPCMove = (slice) => slice.some((x) => state[x] === pcPlayer);
   const getSlice = (slice) =>
     emptySlots(slice).length === 2 && hasPCMove(slice);
   const slice = winningSlices.find(getSlice);
-  const index = slice?.findIndex((e) => !state[e]);
-  return slice?.[index];
+  if (slice) return !state[slice[0]] ? slice[0] : slice[2];
+  return getEmptyIndex();
 }
 
 function getEmptyIndex() {
@@ -158,7 +181,7 @@ function getNextIndex() {
   if (difficulty === "easy") nextIndex = getWinIndex();
   if (isNaN(nextIndex)) nextIndex = getDefendIndex();
   if (isNaN(nextIndex)) nextIndex = getBestMoveForPC();
-  return nextIndex ?? getEmptyIndex();
+  return nextIndex;
 }
 
 function computerMove() {
