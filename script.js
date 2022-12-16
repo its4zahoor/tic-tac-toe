@@ -48,7 +48,7 @@ const moveCheckbox = document.querySelector("#move");
 moveCheckbox.addEventListener("click", function (e) {
   robotMove = e.target.checked ? 0 : 1;
   clearBoard();
-  if (e.target.checked) robotMove();
+  if (e.target.checked) playRobotMove();
 });
 
 function handleClick(box, index) {
@@ -61,7 +61,7 @@ function handleClick(box, index) {
   state[index] = MARK[player];
   checkWinner(player, state);
   turn++;
-  robotMove();
+  playRobotMove();
 }
 
 function getWinMessage(player) {
@@ -176,7 +176,7 @@ function getNextIndex() {
   return nextIndex;
 }
 
-function robotMove() {
+function playRobotMove() {
   if (!(isRobotPlaying && turn % 2 === robotMove)) return;
   changeCursor("wait");
   clearTimeout(timeout);
@@ -209,7 +209,7 @@ function clearBoard() {
   robotMove ??= 1;
   turn = 0;
   clearTimeout(timeout);
-  robotMove();
+  playRobotMove();
 }
 
 function saveHistory(player) {
