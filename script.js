@@ -153,7 +153,7 @@ function getBottomRightEdgeIndex() {
   if (isAnyBottomRightEdgeFilled && !state[7]) return 7;
 }
 
-function getBestMoveForRobot() {
+function getRobotIndex() {
   if (turn === robotMove) {
     return getCenterOrCornerIndex();
   }
@@ -181,7 +181,7 @@ function getEmptyIndex() {
 function getNextIndex() {
   let nextIndex = getWinIndex();
   if (isNaN(nextIndex)) nextIndex = getDefendIndex();
-  if (isNaN(nextIndex)) nextIndex = getBestMoveForRobot();
+  if (isNaN(nextIndex)) nextIndex = getRobotIndex();
   return nextIndex;
 }
 
