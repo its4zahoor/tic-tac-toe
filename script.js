@@ -1,9 +1,9 @@
 const winningSlices = [
+  [0, 4, 8],
+  [2, 4, 6],
   [0, 1, 2],
   [3, 4, 5],
   [6, 7, 8],
-  [0, 4, 8],
-  [2, 4, 6],
   [0, 3, 6],
   [1, 4, 7],
   [2, 5, 8],
@@ -145,12 +145,22 @@ function getCommonCornerIndex() {
   return isBothEdgesFilled && !state[8] ? 8 : undefined;
 }
 
+function getBottomRightEdgeIndex() {
+  const oppPlayer = MARK[(turn + 1) % 2];
+  const isAnySecondaryCornerFilled = [2, 6].some((i) => state[i] === oppPlayer);
+  if (isAnySecondaryCornerFilled && !state[5]) return 5;
+  const isAnyBottomRightEdgeFilled = [5, 7].some((i) => state[i] === oppPlayer);
+  if (isAnyBottomRightEdgeFilled && !state[7]) return 7;
+}
+
 function getBestMoveForRobot() {
   if (turn === robotMove) {
     return getCenterOrCornerIndex();
   }
   let commonIndex = getCommonCornerIndex();
   if (!isNaN(commonIndex)) return commonIndex;
+  let rowIndex = getBottomRightEdgeIndex();
+  if (!isNaN(rowIndex)) return rowIndex;
   const robotPlayer = MARK[robotMove];
   const emptySlots = (slice) => slice.filter((x) => !state[x]);
   const hasRobotMove = (slice) => slice.some((x) => state[x] === robotPlayer);
