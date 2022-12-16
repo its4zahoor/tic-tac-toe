@@ -179,8 +179,7 @@ function getEmptyIndex() {
 }
 
 function getNextIndex() {
-  let nextIndex;
-  if (isRobotPlaying) nextIndex = getWinIndex();
+  let nextIndex = getWinIndex();
   if (isNaN(nextIndex)) nextIndex = getDefendIndex();
   if (isNaN(nextIndex)) nextIndex = getBestMoveForRobot();
   return nextIndex;
