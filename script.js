@@ -22,8 +22,8 @@ let turn = null;
 let state = null;
 let timeout = null;
 let isActive = null;
-let movebyPC = null;
-let difficulty = null;
+let robotMove = null;
+let isRobotPlaying = null;
 
 const resultEl = document.querySelector("#result");
 const statsEl = document.querySelector("#stats");
@@ -33,17 +33,9 @@ const root = document.querySelector(":root");
 const restartEl = document.querySelector("#restart");
 restartEl.addEventListener("click", clearBoard);
 
-const radios = document.querySelectorAll('input[type="radio"]');
-radios.forEach((radio) => {
-  radio.addEventListener("click", function () {
-    difficulty = radio.value;
-    clearBoard();
-  });
-});
-
 const checkbox = document.querySelector("#checkbox");
 checkbox.addEventListener("click", function (e) {
-  difficulty = e.target.checked ? "easy" : null;
+  isRobotPlaying = e.target.checked;
   if (!e.target.checked) {
     moveCheckbox.checked = false;
     disableControls(true);
@@ -54,9 +46,9 @@ checkbox.addEventListener("click", function (e) {
 
 const moveCheckbox = document.querySelector("#move");
 moveCheckbox.addEventListener("click", function (e) {
-  movebyPC = e.target.checked ? 0 : 1;
+  robotMove = e.target.checked ? 0 : 1;
   clearBoard();
-  if (e.target.checked) computerMove();
+  if (e.target.checked) robotMove();
 });
 
 function handleClick(box, index) {
@@ -69,12 +61,12 @@ function handleClick(box, index) {
   state[index] = MARK[player];
   checkWinner(player, state);
   turn++;
-  computerMove();
+  robotMove();
 }
 
 function getWinMessage(player) {
-  if (!difficulty) return `Player ${MARK[player]} won`;
-  const label = player === movebyPC ? "Computer" : "You";
+  if (!isRobotPlaying) return `Player ${MARK[player]} won`;
+  const label = player === robotMove ? "Robot" : "You";
   saveHistory(label);
   return `${label} won`;
 }
@@ -88,13 +80,13 @@ function checkWinner(player, state) {
     showResult(getWinMessage(player));
     changeSliceBG(winnerSlice);
   } else if (!winnerSlice && turn === 8) {
-    if (difficulty) saveHistory("Draw");
+    if (isRobotPlaying) saveHistory("Draw");
     showResult(`Ooops!!! It's a draw`);
   }
 }
 
 function showStats() {
-  if (!difficulty) return;
+  if (!isRobotPlaying) return;
   const history = getHistory();
   const statsArr = Object.keys(history).map((k) => `${k} ${history[k]}`);
   statsEl.innerHTML = statsArr.join(" | ");
@@ -127,13 +119,13 @@ function getIndexForPlayer(player) {
 }
 
 function getWinIndex() {
-  if (turn < 4 + movebyPC) return;
-  const pcPlayer = MARK[movebyPC];
-  return getIndexForPlayer(pcPlayer);
+  if (turn < 4 + robotMove) return;
+  const robotPlayer = MARK[robotMove];
+  return getIndexForPlayer(robotPlayer);
 }
 
 function getDefendIndex() {
-  if (turn < 4 - movebyPC) return;
+  if (turn < 4 - robotMove) return;
   const oppPlayer = MARK[(turn + 1) % 2];
   return getIndexForPlayer(oppPlayer);
 }
@@ -153,17 +145,17 @@ function getCommonCornerIndex() {
   return isBothEdgesFilled && !state[8] ? 8 : undefined;
 }
 
-function getBestMoveForPC() {
-  if (turn === movebyPC) {
+function getBestMoveForRobot() {
+  if (turn === robotMove) {
     return getCenterOrCornerIndex();
   }
   let commonIndex = getCommonCornerIndex();
   if (!isNaN(commonIndex)) return commonIndex;
-  const pcPlayer = MARK[movebyPC];
+  const robotPlayer = MARK[robotMove];
   const emptySlots = (slice) => slice.filter((x) => !state[x]);
-  const hasPCMove = (slice) => slice.some((x) => state[x] === pcPlayer);
+  const hasRobotMove = (slice) => slice.some((x) => state[x] === robotPlayer);
   const getSlice = (slice) =>
-    emptySlots(slice).length === 2 && hasPCMove(slice);
+    emptySlots(slice).length === 2 && hasRobotMove(slice);
   const slice = winningSlices.find(getSlice);
   if (slice) return !state[slice[0]] ? slice[0] : slice[2];
   return getEmptyIndex();
@@ -178,14 +170,14 @@ function getEmptyIndex() {
 
 function getNextIndex() {
   let nextIndex;
-  if (difficulty === "easy") nextIndex = getWinIndex();
+  if (isRobotPlaying) nextIndex = getWinIndex();
   if (isNaN(nextIndex)) nextIndex = getDefendIndex();
-  if (isNaN(nextIndex)) nextIndex = getBestMoveForPC();
+  if (isNaN(nextIndex)) nextIndex = getBestMoveForRobot();
   return nextIndex;
 }
 
-function computerMove() {
-  if (!(difficulty && turn % 2 === movebyPC)) return;
+function robotMove() {
+  if (!(isRobotPlaying && turn % 2 === robotMove)) return;
   changeCursor("wait");
   clearTimeout(timeout);
   const nextIdx = getNextIndex();
@@ -197,10 +189,6 @@ function computerMove() {
 
 function disableControls(isDisabled) {
   if (isDisabled === undefined) checkbox.disabled = isActive;
-  radios.forEach((radio) => {
-    if (radio.value === "hard") return;
-    radio.disabled = isDisabled ?? isActive;
-  });
   moveCheckbox.disabled = isDisabled ?? isActive;
 }
 
@@ -218,15 +206,15 @@ function clearBoard() {
   statsEl.innerHTML = null;
   restartEl.className = "d-none";
   isActive = true;
-  movebyPC ??= 1;
+  robotMove ??= 1;
   turn = 0;
   clearTimeout(timeout);
-  computerMove();
+  robotMove();
 }
 
 function saveHistory(player) {
   let prev = getHistory();
-  if (!prev) prev = { Computer: 0, You: 0, Draw: 0 };
+  if (!prev) prev = { Robot: 0, You: 0, Draw: 0 };
   prev[player] += 1;
   localStorage.setItem("__history__", JSON.stringify(prev));
 }
