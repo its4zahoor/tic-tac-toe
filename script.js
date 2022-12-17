@@ -226,6 +226,7 @@ function clearBoard() {
   restartEl.className = "d-none";
   isActive = true;
   robotMove ??= 1;
+  isRobotPlaying ??= true;
   turn = 0;
   clearTimeout(timeout);
   playRobotMove();
