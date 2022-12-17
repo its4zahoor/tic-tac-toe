@@ -3,7 +3,6 @@
 }
 
 body {
-  color: black;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -13,6 +12,7 @@ body {
 }
 
 .game-grid {
+  margin: 2rem;
   display: grid;
   grid-template-rows: 100px 100px 100px;
   grid-template-columns: 100px 100px 100px;
@@ -86,7 +86,7 @@ body {
 
 #restart {
   cursor: pointer;
-  margin: 2rem;
+  margin: 1rem;
   height: 40px;
   font-size: 1rem;
   border: 2px rgb(17, 51, 116) solid;
@@ -99,14 +99,11 @@ body {
 }
 
 #stats {
-  margin-top: 1rem;
-  font-size: 1rem;
   height: 0.75rem;
   color: dimgrey;
 }
 
 fieldset {
-  margin-top: 5rem;
   width: 300px;
   padding: 1rem;
   box-sizing: border-box;
