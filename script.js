@@ -153,8 +153,9 @@ function getCommonIndex(playerSlices, robotSlices) {
   return countIndex % 10;
 }
 
-function getCenterOrSliceIndex(slice) {
-  return !state[CENTER] ? CENTER : getEmptyIndex(slice);
+function getCenterOrSliceIndex(slice, skipCenter) {
+  if (!skipCenter && !state[CENTER]) return CENTER;
+  return getEmptyIndex([...slice, CENTER]);
 }
 
 function getBestIndex(playerSlices, robotSlices) {
@@ -174,11 +175,8 @@ function getPlayerSlices(player) {
 }
 
 function getRobotIndex() {
-  if (turn === 0 && robotMove === 0) {
-    return getEmptyIndex([...CORNERS, CENTER]);
-  }
-  if (turn === 1 && robotMove === 1) {
-    return getCenterOrSliceIndex(CORNERS);
+  if (turn === robotMove) {
+    return getCenterOrSliceIndex(CORNERS, !robotMove);
   }
   const player = MARK[(turn + 1) % 2];
   const playerSlices = getPlayerSlices(player);
