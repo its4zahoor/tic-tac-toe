@@ -130,12 +130,6 @@ function getDefendIndex() {
   return getIndexForPlayer(oppPlayer);
 }
 
-function getCenterOrCornerIndex() {
-  return !state[CENTER]
-    ? CENTER
-    : CORNERS[Math.floor(Math.random() * CORNERS.length)];
-}
-
 function getCountIndex(array, index) {
   const count = array.filter((x) => x === index).length;
   return Number(`${count}${index}`);
@@ -177,7 +171,7 @@ function getEmptySlices(player) {
 
 function getRobotIndex() {
   if (turn === robotMove) {
-    return getCenterOrCornerIndex();
+    return getEmptyIndex([...CORNERS, CENTER]);
   }
   const player = MARK[(turn + 1) % 2];
   const playerSlices = getEmptySlices(player);
