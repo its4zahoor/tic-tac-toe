@@ -136,43 +136,59 @@ function getCenterOrCornerIndex() {
     : CORNERS[Math.floor(Math.random() * CORNERS.length)];
 }
 
-function getCommonCornerIndex() {
-  const bottomRightEdges = EDGES.slice(2, 4);
-  const oppPlayer = MARK[(turn + 1) % 2];
-  const isBothEdgesFilled = bottomRightEdges.every(
-    (i) => state[i] === oppPlayer
-  );
-  return isBothEdgesFilled && !state[8] ? 8 : undefined;
+function getCountIndex(array, index) {
+  const count = array.filter((x) => x === index).length;
+  return Number(`${count}${index}`);
 }
 
-function getBottomRightEdgeIndex() {
-  const oppPlayer = MARK[(turn + 1) % 2];
-  const isAnySecondaryCornerFilled = [2, 6].some((i) => state[i] === oppPlayer);
-  if (isAnySecondaryCornerFilled && !state[5]) return 5;
-  const isAnyBottomRightEdgeFilled = [5, 7].some((i) => state[i] === oppPlayer);
-  if (isAnyBottomRightEdgeFilled && !state[7]) return 7;
+function fallatenArray(array) {
+  return array.flatMap((x) => x);
+}
+
+function uniqueSliceIndexes(array) {
+  return [...new Set(array)];
+}
+function getCommonIndex(playerSlices, robotSlices) {
+  const playerIdxs = fallatenArray(playerSlices);
+  const robotIdxs = fallatenArray(robotSlices);
+  const allIdxs = [...playerIdxs, ...robotIdxs];
+  const uniqueIdxs = uniqueSliceIndexes(allIdxs);
+  const emptyIdxs = uniqueIdxs.filter((i) => !state[i]);
+  const countsList = emptyIdxs.map((x) => getCountIndex(allIdxs, x));
+  const countIndex = Math.max(...countsList);
+  return countIndex % 10;
+}
+
+function getBestIndex(playerSlices, robotSlices) {
+  if (playerSlices.length === 4) return getEmptyIndex(EDGES);
+  const commonIndex = getCommonIndex(playerSlices, robotSlices);
+  if (!isNaN(commonIndex)) return commonIndex;
+  return getEmptyIndex(robotSlices);
+}
+
+function getEmptySlices(player) {
+  const emptySlots = (slice) => slice.filter((x) => !state[x]);
+  const hasMove = (slice) => slice.some((x) => state[x] === player);
+  const getPlayerSlice = (slice) =>
+    emptySlots(slice).length === 2 && hasMove(slice);
+  const slices = winningSlices.filter(getPlayerSlice);
+  return slices;
 }
 
 function getRobotIndex() {
   if (turn === robotMove) {
     return getCenterOrCornerIndex();
   }
-  let commonIndex = getCommonCornerIndex();
-  if (!isNaN(commonIndex)) return commonIndex;
-  let rowIndex = getBottomRightEdgeIndex();
-  if (!isNaN(rowIndex)) return rowIndex;
-  const robotPlayer = MARK[robotMove];
-  const emptySlots = (slice) => slice.filter((x) => !state[x]);
-  const hasRobotMove = (slice) => slice.some((x) => state[x] === robotPlayer);
-  const getSlice = (slice) =>
-    emptySlots(slice).length === 2 && hasRobotMove(slice);
-  const slice = winningSlices.find(getSlice);
-  if (slice) return !state[slice[0]] ? slice[0] : slice[2];
-  return getEmptyIndex();
+  const player = MARK[(turn + 1) % 2];
+  const playerSlices = getEmptySlices(player);
+  const robot = MARK[robotMove];
+  const robotSlices = getEmptySlices(robot);
+  return getBestIndex(playerSlices, robotSlices);
 }
 
-function getEmptyIndex() {
-  const emptyIdxs = state.flatMap((s, i) => (!s ? i : []));
+function getEmptyIndex(array) {
+  let emptyIdxs = array.flatMap((i) => (!state[i] ? i : []));
+  if (!array?.length) emptyIdxs = state.flatMap((s, i) => (!s ? i : []));
   const randomFloat = Math.random() * emptyIdxs.length;
   const index = Math.floor(randomFloat);
   return emptyIdxs[index];
