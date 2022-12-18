@@ -18,8 +18,8 @@ const MARK = {
   1: "O",
 };
 
+let state = [];
 let turn = null;
-let state = null;
 let timeout = null;
 let isActive = null;
 let robotMove = null;
