@@ -25,6 +25,15 @@ let isActive = null;
 let robotMove = null;
 let isRobotPlaying = null;
 
+const flattenArray = (array) => array.flatMap((x) => x);
+const uniqueIndexes = (array) => [...new Set(array)];
+const isEmpty = (index) => !state[index];
+const emptyList = (array) => array.filter(isEmpty);
+const playerCount = (slice, player) =>
+  slice.filter((x) => state[x] === player).length;
+const robotMark = () => MARK[robotMove];
+const playerMark = (turn) => MARK[turn % 2];
+
 const resultEl = document.querySelector("#result");
 const statsEl = document.querySelector("#stats");
 const allBoxes = document.querySelectorAll(".box");
@@ -53,29 +62,28 @@ moveCheckbox.addEventListener("click", function (e) {
 
 function handleClick(box, index) {
   if (turn === 0) disableControls();
-  if (state[index] || !isActive || box.innerHTML) return;
-  const player = turn % 2;
+  if (!isEmpty(index) || !isActive || box.innerHTML) return;
+  const player = playerMark(turn);
   const mark = document.createElement("div");
-  mark.className = MARK[player];
+  mark.className = player;
   box.appendChild(mark);
-  state[index] = MARK[player];
-  checkWinner(player, state);
+  state[index] = player;
+  checkWinner(player);
   turn++;
   playRobotMove();
 }
 
 function getWinMessage(player) {
-  if (!isRobotPlaying) return `Player ${MARK[player]} won`;
-  const label = player === robotMove ? "Robot" : "You";
+  if (!isRobotPlaying) return `Player ${player} won`;
+  const label = player === robotMark() ? "Robot" : "You";
   saveHistory(label);
   return `${label} won`;
 }
 
-function checkWinner(player, state) {
+function checkWinner(player) {
   if (turn < 4) return;
-  const isSamePlayer = (x) => state[x] === MARK[player];
-  const testEverySlice = (slice) => slice.every(isSamePlayer);
-  const winnerSlice = winningSlices.find(testEverySlice);
+  const isSamePlayer = (slice) => playerCount(slice, player) === 3;
+  const winnerSlice = winningSlices.find(isSamePlayer);
   if (winnerSlice) {
     showResult(getWinMessage(player));
     changeSliceBG(winnerSlice);
@@ -109,24 +117,22 @@ function changeCursor(cursor) {
 }
 
 function getIndexForPlayer(player) {
-  const movesList = (slice) => slice.filter((x) => state[x] === player);
-  const hasEmptyIndex = (slice) => slice.some((e) => !state[e]);
   const getValidSlice = (slice) =>
-    movesList(slice).length === 2 && hasEmptyIndex(slice);
+    playerCount(slice, player) === 2 && emptyList(slice).length;
   const slice = winningSlices.find(getValidSlice);
-  const index = slice?.findIndex((e) => !state[e]);
+  const index = slice?.findIndex(isEmpty);
   return slice?.[index];
 }
 
 function getWinIndex() {
   if (turn < 4 + robotMove) return;
-  const robotPlayer = MARK[robotMove];
+  const robotPlayer = robotMark();
   return getIndexForPlayer(robotPlayer);
 }
 
 function getDefendIndex() {
   if (turn < 4 - robotMove) return;
-  const oppPlayer = MARK[(turn + 1) % 2];
+  const oppPlayer = playerMark(turn + 1);
   return getIndexForPlayer(oppPlayer);
 }
 
@@ -135,26 +141,19 @@ function getCountIndex(array, index) {
   return Number(`${count}${index}`);
 }
 
-function fallatenArray(array) {
-  return array.flatMap((x) => x);
-}
-
-function uniqueSliceIndexes(array) {
-  return [...new Set(array)];
-}
 function getCommonIndex(playerSlices, robotSlices) {
-  const playerIdxs = fallatenArray(playerSlices);
-  const robotIdxs = fallatenArray(robotSlices);
+  const playerIdxs = flattenArray(playerSlices);
+  const robotIdxs = flattenArray(robotSlices);
   const allIdxs = [...playerIdxs, ...robotIdxs];
-  const uniqueIdxs = uniqueSliceIndexes(allIdxs);
-  const emptyIdxs = uniqueIdxs.filter((i) => !state[i]);
+  const uniqueIdxs = uniqueIndexes(allIdxs);
+  const emptyIdxs = emptyList(uniqueIdxs);
   const countsList = emptyIdxs.map((x) => getCountIndex(allIdxs, x));
   const countIndex = Math.max(...countsList);
   return countIndex % 10;
 }
 
 function getCenterOrSliceIndex(slice, skipCenter) {
-  if (!skipCenter && !state[CENTER]) return CENTER;
+  if (!skipCenter && isEmpty(CENTER)) return CENTER;
   return getEmptyIndex([...slice, CENTER]);
 }
 
@@ -166,28 +165,24 @@ function getBestIndex(playerSlices, robotSlices) {
 }
 
 function getPlayerSlices(player) {
-  const emptySlots = (slice) => slice.filter((x) => !state[x]);
-  const hasMove = (slice) => slice.some((x) => state[x] === player);
   const getPlayerSlice = (slice) =>
-    emptySlots(slice).length === 2 && hasMove(slice);
+    emptyList(slice).length === 2 && playerCount(slice, player);
   const slices = winningSlices.filter(getPlayerSlice);
   return slices;
 }
 
 function getRobotIndex() {
-  if (turn === robotMove) {
-    return getCenterOrSliceIndex(CORNERS, !robotMove);
-  }
-  const player = MARK[(turn + 1) % 2];
+  if (turn === robotMove) return getCenterOrSliceIndex(CORNERS, !robotMove);
+  const player = playerMark(turn + 1);
   const playerSlices = getPlayerSlices(player);
-  const robot = MARK[robotMove];
+  const robot = robotMark();
   const robotSlices = getPlayerSlices(robot);
   return getBestIndex(playerSlices, robotSlices);
 }
 
-function getEmptyIndex(array) {
-  let emptyIdxs = array.flatMap((i) => (!state[i] ? i : []));
-  if (!array?.length) emptyIdxs = state.flatMap((s, i) => (!s ? i : []));
+function getEmptyIndex(indexes) {
+  let emptyIdxs = emptyList(indexes);
+  if (!indexes?.length) emptyIdxs = state.flatMap((s, i) => (!s ? i : []));
   const randomFloat = Math.random() * emptyIdxs.length;
   const index = Math.floor(randomFloat);
   return emptyIdxs[index];
@@ -201,7 +196,8 @@ function getNextIndex() {
 }
 
 function playRobotMove() {
-  if (!(isRobotPlaying && turn % 2 === robotMove)) return;
+  if (!(isRobotPlaying && playerMark(turn) === robotMark()) || !isActive)
+    return;
   changeCursor("wait");
   clearTimeout(timeout);
   const nextIdx = getNextIndex();
@@ -219,13 +215,13 @@ function disableControls(isDisabled) {
 function clearBoard() {
   if (turn === 0) return;
   allBoxes.forEach((box, index) => {
+    state[index] = null;
     box.innerHTML = null;
     box.classList.remove("winner");
     box.addEventListener("click", () => handleClick(box, index), {
       once: true,
     });
   });
-  state = Array(9).fill(null);
   resultEl.innerHTML = null;
   statsEl.innerHTML = null;
   restartEl.className = "d-none";
