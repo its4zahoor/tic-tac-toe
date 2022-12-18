@@ -197,8 +197,8 @@ function getNextIndex() {
 }
 
 function playRobotMove() {
-  if (!(isRobotPlaying && playerMark(turn) === robotMark()) || !isActive)
-    return;
+  const isRobotTurn = isRobotPlaying && playerMark(turn) === robotMark();
+  if (!isRobotTurn || !isActive) return;
   changeCursor("wait");
   clearTimeout(timeout);
   const nextIdx = getNextIndex();
