@@ -145,7 +145,7 @@ function getCountIndex(array, index) {
 function getCommonIndex(playerSlices, robotSlices) {
   const playerIdxs = flat(playerSlices);
   const robotIdxs = flat(robotSlices);
-  const allIdxs = [...playerIdxs, ...robotIdxs];
+  const allIdxs = flat([playerIdxs, robotIdxs]);
   const uniqueIdxs = unique(allIdxs);
   const emptyIdxs = emptyList(uniqueIdxs);
   const countsList = emptyIdxs.map((x) => getCountIndex(allIdxs, x));
