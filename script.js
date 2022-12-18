@@ -18,12 +18,22 @@ const MARK = {
   1: "O",
 };
 
+let state = [];
 let turn = null;
-let state = null;
 let timeout = null;
 let isActive = null;
 let robotMove = null;
 let isRobotPlaying = null;
+
+const robotMark = () => MARK[robotMove];
+const playerMark = (turn) => MARK[turn % 2];
+const flat = (array) => array.flatMap((x) => x);
+const unique = (array) => [...new Set(array)];
+const isEmpty = (index) => !state[index];
+const emptyList = (array) => array.filter(isEmpty);
+const emptyIndexes = () => state.flatMap((s, i) => (!s ? i : []));
+const playerCount = (slice, player) =>
+  slice.filter((x) => state[x] === player).length;
 
 const resultEl = document.querySelector("#result");
 const statsEl = document.querySelector("#stats");
@@ -31,7 +41,7 @@ const allBoxes = document.querySelectorAll(".box");
 const root = document.querySelector(":root");
 
 const restartEl = document.querySelector("#restart");
-restartEl.addEventListener("click", clearBoard);
+restartEl.addEventListener("click", startGame);
 
 const checkbox = document.querySelector("#checkbox");
 checkbox.addEventListener("click", function (e) {
@@ -41,45 +51,44 @@ checkbox.addEventListener("click", function (e) {
     disableControls(true);
   }
   if (e.target.checked) disableControls(false);
-  clearBoard();
+  startGame();
 });
 
 const moveCheckbox = document.querySelector("#move");
 moveCheckbox.addEventListener("click", function (e) {
   robotMove = e.target.checked ? 0 : 1;
-  clearBoard();
+  startGame();
   if (e.target.checked) playRobotMove();
 });
 
 function handleClick(box, index) {
   if (turn === 0) disableControls();
-  if (state[index] || !isActive || box.innerHTML) return;
-  const player = turn % 2;
+  if (!isEmpty(index) || !isActive || box.innerHTML) return;
+  const player = playerMark(turn);
   const mark = document.createElement("div");
-  mark.className = MARK[player];
+  mark.className = player;
   box.appendChild(mark);
-  state[index] = MARK[player];
-  checkWinner(player, state);
+  state[index] = player;
+  checkWinner(player);
   turn++;
   playRobotMove();
 }
 
 function getWinMessage(player) {
-  if (!isRobotPlaying) return `Player ${MARK[player]} won`;
-  const label = player === robotMove ? "Robot" : "You";
+  if (!isRobotPlaying) return `Player ${player} won`;
+  const label = player === robotMark() ? "Robot" : "You";
   saveHistory(label);
   return `${label} won`;
 }
 
-function checkWinner(player, state) {
+function checkWinner(player) {
   if (turn < 4) return;
-  const isSamePlayer = (x) => state[x] === MARK[player];
-  const testEverySlice = (slice) => slice.every(isSamePlayer);
-  const winnerSlice = winningSlices.find(testEverySlice);
+  const isSamePlayer = (slice) => playerCount(slice, player) === 3;
+  const winnerSlice = winningSlices.find(isSamePlayer);
   if (winnerSlice) {
     showResult(getWinMessage(player));
     changeSliceBG(winnerSlice);
-  } else if (!winnerSlice && turn === 8) {
+  } else if (!winnerSlice && !emptyIndexes().length) {
     if (isRobotPlaying) saveHistory("Draw");
     showResult(`Ooops!!! It's a draw`);
   }
@@ -109,25 +118,23 @@ function changeCursor(cursor) {
 }
 
 function getIndexForPlayer(player) {
-  const movesList = (slice) => slice.filter((x) => state[x] === player);
-  const hasEmptyIndex = (slice) => slice.some((e) => !state[e]);
   const getValidSlice = (slice) =>
-    movesList(slice).length === 2 && hasEmptyIndex(slice);
+    playerCount(slice, player) === 2 && emptyList(slice).length;
   const slice = winningSlices.find(getValidSlice);
-  const index = slice?.findIndex((e) => !state[e]);
+  const index = slice?.findIndex(isEmpty);
   return slice?.[index];
 }
 
 function getWinIndex() {
   if (turn < 4 + robotMove) return;
-  const robotPlayer = MARK[robotMove];
+  const robotPlayer = robotMark();
   return getIndexForPlayer(robotPlayer);
 }
 
 function getDefendIndex() {
   if (turn < 4 - robotMove) return;
-  const oppPlayer = MARK[(turn + 1) % 2];
-  return getIndexForPlayer(oppPlayer);
+  const player = playerMark(turn + 1);
+  return getIndexForPlayer(player);
 }
 
 function getCountIndex(array, index) {
@@ -135,26 +142,19 @@ function getCountIndex(array, index) {
   return Number(`${count}${index}`);
 }
 
-function fallatenArray(array) {
-  return array.flatMap((x) => x);
-}
-
-function uniqueSliceIndexes(array) {
-  return [...new Set(array)];
-}
 function getCommonIndex(playerSlices, robotSlices) {
-  const playerIdxs = fallatenArray(playerSlices);
-  const robotIdxs = fallatenArray(robotSlices);
-  const allIdxs = [...playerIdxs, ...robotIdxs];
-  const uniqueIdxs = uniqueSliceIndexes(allIdxs);
-  const emptyIdxs = uniqueIdxs.filter((i) => !state[i]);
+  const playerIdxs = flat(playerSlices);
+  const robotIdxs = flat(robotSlices);
+  const allIdxs = flat([playerIdxs, robotIdxs]);
+  const uniqueIdxs = unique(allIdxs);
+  const emptyIdxs = emptyList(uniqueIdxs);
   const countsList = emptyIdxs.map((x) => getCountIndex(allIdxs, x));
   const countIndex = Math.max(...countsList);
   return countIndex % 10;
 }
 
 function getCenterOrSliceIndex(slice, skipCenter) {
-  if (!skipCenter && !state[CENTER]) return CENTER;
+  if (!skipCenter && isEmpty(CENTER)) return CENTER;
   return getEmptyIndex([...slice, CENTER]);
 }
 
@@ -162,32 +162,28 @@ function getBestIndex(playerSlices, robotSlices) {
   if (playerSlices.length === 4) return getCenterOrSliceIndex(EDGES);
   const commonIndex = getCommonIndex(playerSlices, robotSlices);
   if (!isNaN(commonIndex)) return commonIndex;
-  return getEmptyIndex(robotSlices);
+  return getEmptyIndex(flat(robotSlices));
 }
 
 function getPlayerSlices(player) {
-  const emptySlots = (slice) => slice.filter((x) => !state[x]);
-  const hasMove = (slice) => slice.some((x) => state[x] === player);
   const getPlayerSlice = (slice) =>
-    emptySlots(slice).length === 2 && hasMove(slice);
+    emptyList(slice).length === 2 && playerCount(slice, player);
   const slices = winningSlices.filter(getPlayerSlice);
   return slices;
 }
 
 function getRobotIndex() {
-  if (turn === robotMove) {
-    return getCenterOrSliceIndex(CORNERS, !robotMove);
-  }
-  const player = MARK[(turn + 1) % 2];
+  if (turn === robotMove) return getCenterOrSliceIndex(CORNERS, !robotMove);
+  const player = playerMark(turn + 1);
   const playerSlices = getPlayerSlices(player);
-  const robot = MARK[robotMove];
+  const robot = robotMark();
   const robotSlices = getPlayerSlices(robot);
   return getBestIndex(playerSlices, robotSlices);
 }
 
-function getEmptyIndex(array) {
-  let emptyIdxs = array.flatMap((i) => (!state[i] ? i : []));
-  if (!array?.length) emptyIdxs = state.flatMap((s, i) => (!s ? i : []));
+function getEmptyIndex(slice) {
+  let emptyIdxs = emptyList(slice);
+  if (!slice?.length) emptyIdxs = emptyIndexes();
   const randomFloat = Math.random() * emptyIdxs.length;
   const index = Math.floor(randomFloat);
   return emptyIdxs[index];
@@ -201,7 +197,8 @@ function getNextIndex() {
 }
 
 function playRobotMove() {
-  if (!(isRobotPlaying && turn % 2 === robotMove)) return;
+  const isRobotTurn = isRobotPlaying && playerMark(turn) === robotMark();
+  if (!isRobotTurn || !isActive) return;
   changeCursor("wait");
   clearTimeout(timeout);
   const nextIdx = getNextIndex();
@@ -217,15 +214,18 @@ function disableControls(isDisabled) {
 }
 
 function clearBoard() {
-  if (turn === 0) return;
   allBoxes.forEach((box, index) => {
+    state[index] = null;
     box.innerHTML = null;
     box.classList.remove("winner");
     box.addEventListener("click", () => handleClick(box, index), {
       once: true,
     });
   });
-  state = Array(9).fill(null);
+}
+
+function startGame() {
+  if (turn === 0) return;
   resultEl.innerHTML = null;
   statsEl.innerHTML = null;
   restartEl.className = "d-none";
@@ -233,6 +233,7 @@ function clearBoard() {
   robotMove ??= 1;
   isRobotPlaying ??= true;
   turn = 0;
+  clearBoard();
   clearTimeout(timeout);
   playRobotMove();
 }
@@ -248,4 +249,4 @@ function getHistory() {
   return JSON.parse(localStorage.getItem("__history__"));
 }
 
-clearBoard();
+startGame();
