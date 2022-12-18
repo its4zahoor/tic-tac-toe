@@ -41,7 +41,7 @@ const allBoxes = document.querySelectorAll(".box");
 const root = document.querySelector(":root");
 
 const restartEl = document.querySelector("#restart");
-restartEl.addEventListener("click", clearBoard);
+restartEl.addEventListener("click", startGame);
 
 const checkbox = document.querySelector("#checkbox");
 checkbox.addEventListener("click", function (e) {
@@ -51,13 +51,13 @@ checkbox.addEventListener("click", function (e) {
     disableControls(true);
   }
   if (e.target.checked) disableControls(false);
-  clearBoard();
+  startGame();
 });
 
 const moveCheckbox = document.querySelector("#move");
 moveCheckbox.addEventListener("click", function (e) {
   robotMove = e.target.checked ? 0 : 1;
-  clearBoard();
+  startGame();
   if (e.target.checked) playRobotMove();
 });
 
@@ -214,7 +214,6 @@ function disableControls(isDisabled) {
 }
 
 function clearBoard() {
-  if (turn === 0) return;
   allBoxes.forEach((box, index) => {
     state[index] = null;
     box.innerHTML = null;
@@ -223,6 +222,10 @@ function clearBoard() {
       once: true,
     });
   });
+}
+
+function startGame() {
+  if (turn === 0) return;
   resultEl.innerHTML = null;
   statsEl.innerHTML = null;
   restartEl.className = "d-none";
@@ -230,6 +233,7 @@ function clearBoard() {
   robotMove ??= 1;
   isRobotPlaying ??= true;
   turn = 0;
+  clearBoard();
   clearTimeout(timeout);
   playRobotMove();
 }
@@ -245,4 +249,4 @@ function getHistory() {
   return JSON.parse(localStorage.getItem("__history__"));
 }
 
-clearBoard();
+startGame();
