@@ -88,7 +88,7 @@ function checkWinner(player) {
   if (winnerSlice) {
     showResult(getWinMessage(player));
     changeSliceBG(winnerSlice);
-  } else if (!winnerSlice && !emptyIndexes.length) {
+  } else if (!winnerSlice && !emptyIndexes().length) {
     if (isRobotPlaying) saveHistory("Draw");
     showResult(`Ooops!!! It's a draw`);
   }
