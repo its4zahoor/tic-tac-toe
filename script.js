@@ -25,14 +25,15 @@ let isActive = null;
 let robotMove = null;
 let isRobotPlaying = null;
 
-const flattenArray = (array) => array.flatMap((x) => x);
-const uniqueIndexes = (array) => [...new Set(array)];
-const isEmpty = (index) => !state[index];
-const emptyList = (array) => array.filter(isEmpty);
-const playerCount = (slice, player) =>
-  slice.filter((x) => state[x] === player).length;
 const robotMark = () => MARK[robotMove];
 const playerMark = (turn) => MARK[turn % 2];
+const flat = (array) => array.flatMap((x) => x);
+const unique = (array) => [...new Set(array)];
+const isEmpty = (index) => !state[index];
+const emptyList = (array) => array.filter(isEmpty);
+const emptyIndexes = () => state.flatMap((s, i) => (!s ? i : []));
+const playerCount = (slice, player) =>
+  slice.filter((x) => state[x] === player).length;
 
 const resultEl = document.querySelector("#result");
 const statsEl = document.querySelector("#stats");
@@ -87,7 +88,7 @@ function checkWinner(player) {
   if (winnerSlice) {
     showResult(getWinMessage(player));
     changeSliceBG(winnerSlice);
-  } else if (!winnerSlice && turn === 8) {
+  } else if (!winnerSlice && !emptyIndexes.length) {
     if (isRobotPlaying) saveHistory("Draw");
     showResult(`Ooops!!! It's a draw`);
   }
@@ -132,8 +133,8 @@ function getWinIndex() {
 
 function getDefendIndex() {
   if (turn < 4 - robotMove) return;
-  const oppPlayer = playerMark(turn + 1);
-  return getIndexForPlayer(oppPlayer);
+  const player = playerMark(turn + 1);
+  return getIndexForPlayer(player);
 }
 
 function getCountIndex(array, index) {
@@ -142,10 +143,10 @@ function getCountIndex(array, index) {
 }
 
 function getCommonIndex(playerSlices, robotSlices) {
-  const playerIdxs = flattenArray(playerSlices);
-  const robotIdxs = flattenArray(robotSlices);
+  const playerIdxs = flat(playerSlices);
+  const robotIdxs = flat(robotSlices);
   const allIdxs = [...playerIdxs, ...robotIdxs];
-  const uniqueIdxs = uniqueIndexes(allIdxs);
+  const uniqueIdxs = unique(allIdxs);
   const emptyIdxs = emptyList(uniqueIdxs);
   const countsList = emptyIdxs.map((x) => getCountIndex(allIdxs, x));
   const countIndex = Math.max(...countsList);
@@ -161,7 +162,7 @@ function getBestIndex(playerSlices, robotSlices) {
   if (playerSlices.length === 4) return getCenterOrSliceIndex(EDGES);
   const commonIndex = getCommonIndex(playerSlices, robotSlices);
   if (!isNaN(commonIndex)) return commonIndex;
-  return getEmptyIndex(robotSlices);
+  return getEmptyIndex(flat(robotSlices));
 }
 
 function getPlayerSlices(player) {
@@ -180,9 +181,9 @@ function getRobotIndex() {
   return getBestIndex(playerSlices, robotSlices);
 }
 
-function getEmptyIndex(indexes) {
-  let emptyIdxs = emptyList(indexes);
-  if (!indexes?.length) emptyIdxs = state.flatMap((s, i) => (!s ? i : []));
+function getEmptyIndex(slice) {
+  let emptyIdxs = emptyList(slice);
+  if (!slice?.length) emptyIdxs = emptyIndexes();
   const randomFloat = Math.random() * emptyIdxs.length;
   const index = Math.floor(randomFloat);
   return emptyIdxs[index];
