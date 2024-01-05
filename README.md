@@ -12,8 +12,8 @@ The app is deployed on Netlify using the GitHub integration, see [Live Demo Here
 Share the screenshots and logs (box indexes) steps in the issues.
 1. Play the game on the link above.
 2. Select "Play with AI" and try to win
-3. Select "Robot moves first" and try to win
-4. Unselect "Robot moves first" and try to win
+3. Select "AI moves first" and try to win
+4. Unselect "AI moves first" and try to win
 
 Will be glad to fix any edge cases.
 - Share a screenshot
